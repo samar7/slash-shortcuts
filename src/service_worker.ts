@@ -15,7 +15,7 @@ const fuseOptions = {
 let fuse = new Fuse(defaultShortcuts, fuseOptions)
 
 chrome.runtime.onInstalled.addListener(async (details) => {
-  if (details.reason !== "install" && details.reason !== "update") return;
+  if (details.reason !== "install") return;
 
   // persist default Shortcuts to local storage
   chrome.storage.local.set({ [SHORTCUTS_STORAGE_KEY]: JSON.stringify(defaultShortcuts) })
@@ -53,7 +53,7 @@ chrome.omnibox.onInputEntered.addListener(async function (text, disposition) {
   // "go g" + Enter: resolve the typed name (with or without the prefix) to its saved URL
   const name = text.trim().toLowerCase()
   const shortcuts = await getSavedShortcuts()
-  const match = shortcuts.find((shortcut) => shortcut.shortlink === name || shortcut.shortlink === `${SHORTCUT_PREFIX}${name}`)
+  const match = shortcuts.find((shortcut) => shortcut.shortlink.toLowerCase() === name || shortcut.shortlink.toLowerCase() === `${SHORTCUT_PREFIX}${name}`)
   const url = match?.url ?? `http://${text}`
   switch (disposition) {
     case "currentTab":
@@ -109,7 +109,7 @@ chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
   if (!(isFile || isSearchPage) || !query.startsWith(SHORTCUT_PREFIX)) return
 
   const shortcuts = await getSavedShortcuts()
-  const match = shortcuts.find((shortcut) => shortcut.shortlink === query.trim().toLowerCase())
+  const match = shortcuts.find((shortcut) => shortcut.shortlink.toLowerCase() === query.trim().toLowerCase())
   console.log('[slash] query', query, 'match', match?.url ?? 'none')
   if (match) chrome.tabs.update(details.tabId, { url: match.url })
 })
