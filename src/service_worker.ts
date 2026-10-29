@@ -94,6 +94,7 @@ chrome.webRequest.onBeforeRequest.addListener((param) => {
 // webNavigation fires reliably for these, so handle the "/" prefix here.
 chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
   if (details.frameId !== 0) return
+  console.log('[slash] navigation', details.url)
   let url: URL
   try { url = new URL(details.url) } catch { return }
   // Chrome turns a bare "/g" into file:///g, so treat that path as the typed shortcut too
@@ -106,6 +107,7 @@ chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
 
   const shortcuts = await getSavedShortcuts()
   const match = shortcuts.find((shortcut) => shortcut.shortlink === query.trim().toLowerCase())
+  console.log('[slash] query', query, 'match', match?.url ?? 'none')
   if (match) chrome.tabs.update(details.tabId, { url: match.url })
 })
 
