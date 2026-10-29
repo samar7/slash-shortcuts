@@ -88,3 +88,28 @@ chrome.webRequest.onBeforeRequest.addListener((param) => {
     }
   })
 }, { urls: SHORTCUT_PREFIX.startsWith('/') ? ["*://*/search*"] : ["*://*/search*", `*://${SHORTCUT_PREFIX.split('/')[0]}/*`] })
+
+
+// Address-bar searches (e.g. typing "/g" + Enter) arrive as a search navigation with q=/g.
+// webNavigation fires reliably for these, so handle the "/" prefix here.
+chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
+  if (details.frameId !== 0) return
+  let url: URL
+  try { url = new URL(details.url) } catch { return }
+  const isSearchPage = url.pathname === '/search' || url.pathname === '/'
+  const query = url.searchParams.get('q') ?? url.searchParams.get('p') ?? ''
+  if (!isSearchPage || !query.startsWith(SHORTCUT_PREFIX)) return
+
+  const shortcuts = await getSavedShortcuts()
+  const match = shortcuts.find((shortcut) => shortcut.shortlink === query.trim().toLowerCase())
+  if (match) chrome.tabs.update(details.tabId, { url: match.url })
+})
+
+// Make sure shortcuts exist even if the install event was missed (e.g. storage cleared)
+getSavedShortcuts().then(async (saved) => {
+  if (saved.length === 0) {
+    await chrome.storage.local.set({ [SHORTCUTS_STORAGE_KEY]: JSON.stringify(defaultShortcuts) })
+  }
+}).catch(async () => {
+  await chrome.storage.local.set({ [SHORTCUTS_STORAGE_KEY]: JSON.stringify(defaultShortcuts) })
+})

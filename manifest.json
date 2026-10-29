@@ -24,6 +24,7 @@
     "declarativeNetRequest",
     "activeTab",
     "webRequest",
+    "webNavigation",
     "favicon"
   ],
   "host_permissions": [
