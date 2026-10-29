@@ -49,9 +49,12 @@ chrome.omnibox.onInputChanged.addListener(async function (text, suggest) {
   suggest(suggestions);
 });
 
-chrome.omnibox.onInputEntered.addListener(function (text, disposition) {
-  // redirect to url in new tab
-  const url = `http://${text}`
+chrome.omnibox.onInputEntered.addListener(async function (text, disposition) {
+  // "go g" + Enter: resolve the typed name (with or without the prefix) to its saved URL
+  const name = text.trim().toLowerCase()
+  const shortcuts = await getSavedShortcuts()
+  const match = shortcuts.find((shortcut) => shortcut.shortlink === name || shortcut.shortlink === `${SHORTCUT_PREFIX}${name}`)
+  const url = match?.url ?? `http://${text}`
   switch (disposition) {
     case "currentTab":
       chrome.tabs.update({ url });

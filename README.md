@@ -14,6 +14,7 @@ npm run build
 1. Open `chrome://extensions` and turn on Developer mode.
 2. Click **Load unpacked** and select the `oslash-chrome-extension` folder.
 3. Pin the extension, click it to add shortcuts (names start with `/`).
+4. Fallback: type `go`, press Space or Tab, then the name (e.g. `go g`) and Enter.
 
 ## Changing the prefix
 
