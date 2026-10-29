@@ -96,9 +96,13 @@ chrome.webNavigation.onBeforeNavigate.addListener(async (details) => {
   if (details.frameId !== 0) return
   let url: URL
   try { url = new URL(details.url) } catch { return }
+  // Chrome turns a bare "/g" into file:///g, so treat that path as the typed shortcut too
+  const isFile = url.protocol === 'file:'
   const isSearchPage = url.pathname === '/search' || url.pathname === '/'
-  const query = url.searchParams.get('q') ?? url.searchParams.get('p') ?? ''
-  if (!isSearchPage || !query.startsWith(SHORTCUT_PREFIX)) return
+  const query = isFile
+    ? decodeURIComponent(url.pathname)
+    : (url.searchParams.get('q') ?? url.searchParams.get('p') ?? '')
+  if (!(isFile || isSearchPage) || !query.startsWith(SHORTCUT_PREFIX)) return
 
   const shortcuts = await getSavedShortcuts()
   const match = shortcuts.find((shortcut) => shortcut.shortlink === query.trim().toLowerCase())
