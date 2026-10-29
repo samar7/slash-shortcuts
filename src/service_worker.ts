@@ -15,7 +15,7 @@ const fuseOptions = {
 let fuse = new Fuse(defaultShortcuts, fuseOptions)
 
 chrome.runtime.onInstalled.addListener(async (details) => {
-  if (details.reason !== "install") return;
+  if (details.reason !== "install" && details.reason !== "update") return;
 
   // persist default Shortcuts to local storage
   chrome.storage.local.set({ [SHORTCUTS_STORAGE_KEY]: JSON.stringify(defaultShortcuts) })
